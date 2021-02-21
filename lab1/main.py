@@ -33,11 +33,11 @@ class BinRelation:
             self.matrix = matrix
             self.vertices = list(string.ascii_uppercase[:len(matrix)])
         elif pairs is not None:
-            vertices = sorted(set([p[0] for p in pairs] +
-                                  [p[1] for p in pairs]))
+            vertices = sorted(set([str(p[0]) for p in pairs] +
+                                  [str(p[1]) for p in pairs]))
             matrix = [[0] * len(vertices) for _ in range(len(vertices))]
             for a, b in pairs:
-                i, j = vertices.index(a), vertices.index(b)
+                i, j = vertices.index(str(a)), vertices.index(str(b))
                 matrix[i][j] = 1
             self.matrix = matrix
             self.pairs = pairs
@@ -45,10 +45,8 @@ class BinRelation:
         else:
             raise Exception("Either matrix or pairs must be provided")
         self.graph = Digraph(format="png")
-        for tail, row in zip(string.ascii_uppercase, self.matrix):
-            for head, connected in zip(string.ascii_uppercase, row):
-                if connected:
-                    self.graph.edge(tail, head)
+        for a, b in self.pairs:
+            self.graph.edge(str(a), str(b))
 
     def __str__(self):
         mtx_str = "\n".join(" ".join(str(n) for n in [self.vertices[i], *row])
@@ -65,6 +63,11 @@ class BinRelation:
             os.system(f"kitty +kitten icat {self.name}.png")
         except:
             pass
+
+        print("Властивості:", ", ".join(self.relation_properties()))
+        print("Класи бін. відношень:",
+              ", ".join(self.relation_classes()) or "немає")
+        print("\n")
 
     # Properties
     def reflexive(self) -> bool:
@@ -153,11 +156,25 @@ def parse(fname: str) -> List[List[List[int]]]:
 
 if __name__ == "__main__":
     parsed = parse(sys.argv[1])
-    # for index, matrix in list(enumerate(parsed))[1:2]:
     for index, matrix in enumerate(parsed):
         g = BinRelation(matrix=matrix, name=f"graph{index}")
         g.render()
-        print("Властивості:", ", ".join(g.relation_properties()))
-        print("Класи бін. відношень:",
-              ", ".join(g.relation_classes()) or "немає")
-        print("\n")
+
+    part2 = [(6, 4), (2, 3), (8, 6), (7, 1), (4, 2), (1, 4), (5, 8)]
+    part2strict = [*part2,
+                   (7, 4), (7, 2), (7, 3),
+                   (1, 3), (1, 2),
+                   (5, 6), (5, 4), (5, 2), (5, 3),
+                   (8, 4), (8, 2), (8, 3),
+                   (6, 2), (6, 3),
+                   (4, 3)]
+    part2nonstrict = [*part2strict, *[(a, a) for a in range(1, 9)]]
+    print(part2nonstrict)
+
+    p2 = BinRelation(pairs=part2, name="part2")
+    p2strict = BinRelation(pairs=part2strict, name="part2strict")
+    p2nonstrict = BinRelation(pairs=part2nonstrict, name="part2nonstrict")
+
+    p2.render()
+    p2strict.render()
+    p2nonstrict.render()
