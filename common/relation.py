@@ -1,17 +1,15 @@
-#!/usr/bin/env python
-import sys
 import os
 from typing import List
-from graphviz import Digraph
 import string
 import itertools
+from graphviz import Digraph
 
 RELATION_CLASSES = {
     "equivalent": ("reflexive", "symmetric", "transitive"),
     "strict_order": ("antireflexive", "asymmetric", "transitive"),
     "nonstrict_order": ("reflexive", "antisymmetric", "transitive"),
     "quasi_order": ("reflexive", "transitive"),
-    "weak_ordered": ("asymmetric", "transitive", "negative_transitive"),
+    "weak_ordered": ("asymmetric", "negative_transitive"),
     "tolerant": ("reflexive", "symmetric"),
 }
 
@@ -33,11 +31,11 @@ class BinRelation:
             self.matrix = matrix
             self.vertices = list(string.ascii_uppercase[:len(matrix)])
         elif pairs is not None:
-            vertices = sorted(set([str(p[0]) for p in pairs] +
-                                  [str(p[1]) for p in pairs]))
+            vertices = sorted(set([p[0] for p in pairs] +
+                                  [p[1] for p in pairs]))
             matrix = [[0] * len(vertices) for _ in range(len(vertices))]
             for a, b in pairs:
-                i, j = vertices.index(str(a)), vertices.index(str(b))
+                i, j = vertices.index(a), vertices.index(b)
                 matrix[i][j] = 1
             self.matrix = matrix
             self.pairs = pairs
@@ -49,9 +47,10 @@ class BinRelation:
             self.graph.edge(str(a), str(b))
 
     def __str__(self):
-        mtx_str = "\n".join(" ".join(str(n) for n in [self.vertices[i], *row])
-                            for i, row in enumerate(self.matrix))
-        mtx_str = " ".join([" ", *self.vertices]) + "\n" + mtx_str
+        mtx_body = "\n".join(" ".join(str(n) for n in [self.vertices[i], *row])
+                             for i, row in enumerate(self.matrix))
+        header = " ".join([" ", *(str(v) for v in self.vertices)])
+        mtx_str = f"{header}\n{mtx_body}"
         pairs_str = ", ".join(f"({a} {b})" for a, b in self.pairs)
         return "\n".join([f"{self.name}:", pairs_str, mtx_str])
 
@@ -67,7 +66,7 @@ class BinRelation:
         print("Властивості:", ", ".join(self.relation_properties()))
         print("Класи бін. відношень:",
               ", ".join(self.relation_classes()) or "немає")
-        print("\n")
+        print()
 
     # Properties
     def reflexive(self) -> bool:
@@ -142,39 +141,17 @@ class BinRelation:
         return [klass for klass, props in RELATION_CLASSES.items()
                 if set(props).issubset(properties)]
 
+    def find_cycle(self) -> List[str]:
+        colors = {c: 0 for c in self.vertices}  # 0: white; 1: grey; 2: black
 
-def parse(fname: str) -> List[List[List[int]]]:
-    matrices = []
-    with open(fname, "r", encoding="latin1") as f:
-        lines = f.readlines()
-        for i in range(0, len(lines), 7):
-            matrix = [[int(n) for n in filter(len, line[:-1].split(" "))]
-                      for line in lines[i: i + 7][1:]]
-            matrices.append(matrix)
-    return matrices
-
-
-if __name__ == "__main__":
-    parsed = parse(sys.argv[1])
-    for index, matrix in enumerate(parsed):
-        g = BinRelation(matrix=matrix, name=f"graph{index}")
-        g.render()
-
-    part2 = [(6, 4), (2, 3), (8, 6), (7, 1), (4, 2), (1, 4), (5, 8)]
-    part2strict = [*part2,
-                   (7, 4), (7, 2), (7, 3),
-                   (1, 3), (1, 2),
-                   (5, 6), (5, 4), (5, 2), (5, 3),
-                   (8, 4), (8, 2), (8, 3),
-                   (6, 2), (6, 3),
-                   (4, 3)]
-    part2nonstrict = [*part2strict, *[(a, a) for a in range(1, 9)]]
-    print(part2nonstrict)
-
-    p2 = BinRelation(pairs=part2, name="part2")
-    p2strict = BinRelation(pairs=part2strict, name="part2strict")
-    p2nonstrict = BinRelation(pairs=part2nonstrict, name="part2nonstrict")
-
-    p2.render()
-    p2strict.render()
-    p2nonstrict.render()
+        def dfs(v, path):
+            if colors[v] == 1:
+                return path
+            colors[v] = 1
+            for a, b in filter(lambda x: x[0] == v, self.pairs):
+                if next_vert := dfs(b, path + [b]):
+                    return next_vert
+            colors[v] = 2
+            return []
+        fst = self.vertices[0]
+        return dfs(fst, [fst])
