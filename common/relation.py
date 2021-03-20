@@ -76,7 +76,7 @@ class BinRelation:
         return "\n".join([f"{self.name}:", pairs_str, mtx_str])
 
     @staticmethod
-    def from_assos_tuples(*args):
+   def from_assoc_tuples(*args):
         tuples = []
         myargs = list(args)
         while myargs:
@@ -85,20 +85,23 @@ class BinRelation:
         pairs = [(t[0], x) for t in tuples for x in t[1]]
         return BinRelation(pairs=pairs)
 
-    def render(self):
-        self.graph.render(self.name, cleanup=True)
-        print(str(self))
-        # Display picture in terminal
-        name = f"{self.name}.png"
-        try:
-            os.system(f"kitty +kitten icat {name}")
-            os.remove(name)
-        except Exception as e:
-            print(e)
+    def render(self, matrix_pairs=True, picture=True, properties=True):
+        if matrix_pairs:
+            print(str(self))
+        if picture:
+            name = f"{self.name}.png"
+            self.graph.render(self.name, cleanup=True)
+            # Display picture in terminal
+            try:
+                os.system(f"kitty +kitten icat --align left {name}")
+                os.remove(name)
+            except Exception as e:
+                print(e)
 
-        print("Властивості:", ", ".join(self.relation_properties()))
-        print("Класи бін. відношень:",
-              ", ".join(self.relation_classes()) or "немає")
+        if properties:
+            print("Властивості:", ", ".join(self.relation_properties()))
+            print("Класи бін. відношень:",
+                  ", ".join(self.relation_classes()) or "немає")
         print()
 
     # Properties
@@ -261,7 +264,7 @@ class BinRelation:
             accum_s.update(current_s)
             current_q.update(next_q)
         result = list(current_q)
-        assert self.optimal_by_NM(result)  # Verification
+        assert self.optimal_by_NM(result), "Множина не є розв'язком НМ"
         return result
 
     def prove_inter_stability(self, vertices):
@@ -279,5 +282,45 @@ class BinRelation:
         return True
 
     def optimal_by_NM(self, vertices):
+        """Prove Neumann–Morgenstern correctness"""
         return (self.prove_inter_stability(vertices)
                 and self.prove_outer_stability(vertices))
+
+    def PIN_matrix(self, P, I, N):
+        result = []
+        for i, row in enumerate(self.matrix):
+            r = []
+            for j, c in enumerate(row):
+                if P and self[i, j] and not self[j, i]:
+                    r.append(1)
+                elif I and self[i, j] and self[j, i]:
+                    r.append(1)
+                elif N and not self[i, j] and not self[j, i]:
+                    r.append(1)
+                else:
+                    r.append(0)
+            result.append(r)
+        return result
+
+    def build_K(self, k):
+        max_elements, optimal_elements = [], []
+        if k == 1:
+            pin_matrix = self.PIN_matrix(True, True, True)
+        elif k == 2:
+            pin_matrix = self.PIN_matrix(True, False, True)
+        elif k == 3:
+            pin_matrix = self.PIN_matrix(True, True, False)
+        elif k == 4:
+            pin_matrix = self.PIN_matrix(True, False, False)
+        min_set = set()
+        for row in pin_matrix:
+            for v, c in zip(self.vertices, row):
+                if c:
+                    min_set.add(v)
+        for v, row in zip(self.vertices, pin_matrix):
+            verts_in_row = set(v for v, c in zip(self.vertices, row) if c)
+            if verts_in_row == min_set:
+                max_elements.append(v)
+            if len(verts_in_row) == len(self.vertices):
+                optimal_elements.append(v)
+        return max_elements, optimal_elements

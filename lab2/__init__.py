@@ -2,23 +2,50 @@
 from common.relation import BinRelation
 
 
-def parse(filename):
+def parse(filename, size):
     matrices = []
-    with open(filename, 'r') as f:
+    with open(filename, 'r', encoding="latin1") as f:
         lines = f.read().splitlines()
-    for i in range(0, len(lines), 16):
+    for i in range(0, len(lines), size+1):
         l = [[int(n) for n in line.split(' ') if n.strip()]
-             for line in lines[i+1:i+16]]
+             for line in lines[i+1:i+size+1]]
         matrices.append(l)
     return matrices
 
 
 def main(args):
-    vertices = list(range(1, 16))
-    relations = [BinRelation(matrix=m, vertices=vertices)
-                 for m in parse(args[0])]
-    for i, g in enumerate(relations):
-        print(f"Відношення №{i+1}:")
-        print(f"Ациклічне: {not g.has_cycle()}")
-        if not g.has_cycle():
-            print(f"Множина НМ: {g.build_C0()}")
+    print("Варіант №1")
+    print("Завдання 1:")
+    size = 6
+    vertices = list(range(1, size+1))
+    for n, matrix in enumerate(parse(args[0], size)):
+        relation = BinRelation(matrix=matrix, vertices=vertices)
+        print(f"Матриця №{n+1}:")
+        relation.render(matrix_pairs=False)
+        print(f"Симетричність: {relation.symmetric()}")
+        print("Найкращі альтернативи за домінуванням:"
+              f" {relation.optim_domination()}")
+        print("Найкращі альтернативи за блокуванням:"
+              f" {relation.optim_blocking()}")
+        print()
+    print('-'*80)
+
+    print("Завдання 2:")
+    size = 15
+    for n, matrix in enumerate(parse(args[1], size)):
+        relation = BinRelation(matrix=matrix, vertices=vertices)
+        print(f"Матриця №{n+1}:")
+        relation.render(matrix_pairs=False, properties=False)
+        acyclic = not relation.has_cycle()
+        print(f"Ациклічність: {acyclic}")
+        if acyclic:
+            print("Оптимізація за Нейманом-Моргерштерном:")
+            print(f"C₀ = {relation.build_C0()}")
+        else:
+            print("К-оптимізація:")
+            for k in range(1, 5):
+                print(f"K = {k}")
+                max, opt = relation.build_K(k)
+                print(f"\tМаксимальні альтернативи: {max}")
+                print(f"\tОптимальні альтернативи: {opt}")
+        print()

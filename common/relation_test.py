@@ -22,12 +22,12 @@ if __name__ == "__main__":
           [0, 0, 1, 0, 1, 0]]
     m5 = [[1 if i == j else c for j, c in enumerate(row)]
           for i, row in enumerate(m4)]
-    r6 = BinRelation.from_assos_tuples(2, [1, 3, 6],
+    r6 = BinRelation.from_assoc_tuples(2, [1, 3, 6],
                                        5, [1, 3, 6],
                                        1, [3, 6],
                                        3, [6],
                                        4, [6])
-    r8 = BinRelation.from_assos_tuples(2, [2, 1, 3, 6],
+    r8 = BinRelation.from_assoc_tuples(2, [2, 1, 3, 6],
                                        5, [5, 1, 3, 6],
                                        1, [1, 3, 6],
                                        3, [3, 6],
@@ -59,12 +59,19 @@ if __name__ == "__main__":
           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
-    rel = BinRelation(matrix=m6, vertices=list(range(1, 11)))
-    rel.render()
-    NM_solution = rel.build_C0()
-    print(NM_solution)
-    print(rel.optimal_by_NM(NM_solution))
-    # relation = r8
-    # relation.render()
-    # print(relation.x_star_r())
-    # print(relation.x_star_star_r())
+    m7 = [[1, 0, 0, 0, 1, 0, 1, 0, 0, 0],
+          [0, 1, 0, 0, 1, 0, 1, 0, 0, 1],
+          [0, 0, 0, 0, 1, 1, 1, 0, 0, 0],
+          [1, 0, 0, 1, 0, 1, 1, 0, 0, 1],
+          [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+          [0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 1, 0, 0, 1],
+          [1, 0, 0, 0, 0, 0, 1, 0, 0, 1],
+          [0, 1, 0, 0, 1, 0, 0, 0, 1, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+
+    rel = BinRelation(matrix=m7, vertices=list(range(1, 11)))
+    print(rel.build_K(1))
+    print(rel.build_K(2))
+    print(rel.build_K(3))
+    print(rel.build_K(4))
