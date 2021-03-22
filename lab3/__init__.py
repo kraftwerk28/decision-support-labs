@@ -1,26 +1,25 @@
 from common.sigma_matrix import SigmaMatrix
 from common.berezovsky import BerezovskyMethod
-from common.relation import BinRelation
 
 
 def write_solution(filename, matrix, sequence, class_indexes):
     sm = SigmaMatrix(matrix)
-    pareto = sm.pareto()
-    majority = sm.majoritaric()
-    lex = sm.lexicographic(sequence)
-    berezovsky = BerezovskyMethod(matrix, class_indexes).solve()
-    podinovsky = sm.podinovsky()
-    with open(filename, "w") as f:
-        f.write("1\n")
-        f.write(pareto.raw_matrix())
-        f.write("2\n")
-        f.write(majority.raw_matrix())
-        f.write("3\n")
-        f.write(lex.raw_matrix())
-        f.write("4\n")
-        f.write(berezovsky.raw_matrix())
-        f.write("5\n")
-        f.write(podinovsky.raw_matrix())
+    vertices = list(range(1, 21))
+    solutions = [
+        ("Парето", sm.pareto()),
+        ("Мажоритарне", sm.majoritaric()),
+        ("Лексикографічне", sm.lexicographic(sequence)),
+        ("Березовського", BerezovskyMethod(matrix, class_indexes).solve()),
+        ("Подиновського", sm.podinovsky()),
+    ]
+    f = open(filename, "w")
+    for idx, (name, solution) in enumerate(solutions):
+        print(f"Відношення {name}:")
+        solution = solution.update_vertices(vertices)
+        solution.render(picture=False)
+        print(f"Оптимізація за домінуванням: {solution.optim_domination()}")
+        print(f"Оптимізація за блокуванням: {solution.optim_blocking()}")
+        f.write(f"{idx + 1}\n{solution.raw_matrix()}")
 
 
 def main(args):
@@ -32,4 +31,4 @@ def main(args):
     # Класи впорядкованості
     class_indexes = [[int(n[1:]) for n in cl.strip('{} ').split(',')]
                      for cl in lines[-1].split('<')]
-    write_solution("lab3/solution.txt", matrix, sequence, class_indexes)
+    write_solution("lab3/3-1.txt", matrix, sequence, class_indexes)
