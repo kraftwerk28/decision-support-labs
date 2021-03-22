@@ -31,4 +31,7 @@ def main(args):
     # Класи впорядкованості
     class_indexes = [[int(n[1:]) for n in cl.strip('{} ').split(',')]
                      for cl in lines[-1].split('<')]
-    write_solution("lab3/3-1.txt", matrix, sequence, class_indexes)
+    write_solution("lab3/Var-01-АмбросВсеволод.txt",
+                   matrix,
+                   sequence,
+                   class_indexes)
