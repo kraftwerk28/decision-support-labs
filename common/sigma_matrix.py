@@ -4,6 +4,7 @@ from .relation import BinRelation
 
 class SigmaMatrix:
     def __init__(self, ratings: List[List[int]], vertices=None):
+        self.ratings = ratings
         result = []
         for row in ratings:
             cur = []
@@ -29,7 +30,10 @@ class SigmaMatrix:
                   for row in normalized]
         return BinRelation(matrix=matrix)
 
-    def lexicographic(self):
+    def lexicographic(self, ranging):
+        new_ratings = [[rating[i-1] for i in ranging]
+                       for rating in self.ratings]
+
         def predicate(sigma):
             for i in sigma:
                 if i == 0:
@@ -39,8 +43,12 @@ class SigmaMatrix:
                 else:
                     return False
             return False
-        normalized = self.normalize()
+        normalized = SigmaMatrix(new_ratings).normalize()
         matrix = [[1 if predicate(sigma) else 0
                    for sigma in row]
                   for row in normalized]
         return BinRelation(matrix=matrix)
+
+    def podinovsky(self):
+        new_matrix = [sorted(row, reverse=True) for row in self.ratings]
+        return SigmaMatrix(new_matrix).pareto()

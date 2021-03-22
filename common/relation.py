@@ -338,10 +338,23 @@ class BinRelation:
                   for row1, row2 in zip(self.matrix, other.matrix)]
         return BinRelation(matrix=matrix, vertices=self.vertices)
 
+    def __invert__(self):
+        new_matrix = [[1 if not c else 0
+                       for c in row]
+                      for row in self.matrix]
+        return BinRelation(matrix=new_matrix, vertices=self.vertices)
+
     def transpose(self):
         new_matrix = [[self[j, i] for j, _ in enumerate(row)]
                       for i, row in enumerate(self.matrix)]
         return BinRelation(matrix=new_matrix, vertices=self.vertices)
+
+    def update_vertices(self, vertices):
+        return BinRelation(matrix=self.matrix, vertices=vertices)
+
+    def raw_matrix(self):
+        return "\n".join(" ".join(str(n) for n in row)
+                         for row in self.matrix) + "\n"
 
 # Pareto: all components of σ ≥ 0
 # Majority: Σ of components of σ ≥ 0, e.g. (-1, 1, 0, 1), or (0, 0, -1, 1)
