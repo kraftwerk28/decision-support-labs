@@ -49,8 +49,10 @@ class BinRelation:
     def __init__(self, matrix=None, pairs=None, name="graph", vertices=None):
         self.name = name
         if matrix is not None:
-            self.vertices = (vertices or
-                             list(string.ascii_uppercase[:len(matrix)]))
+            assert all(len(row) == len(matrix) for row in matrix)
+            self.vertices = (vertices[:len(matrix)]
+                             if vertices is not None
+                             else list(string.ascii_uppercase[:len(matrix)]))
             self.matrix = matrix
             self.pairs = from_matrix(matrix, vertices=self.vertices)
         elif pairs is not None:
@@ -76,7 +78,7 @@ class BinRelation:
         return "\n".join([f"{self.name}:", pairs_str, mtx_str])
 
     @staticmethod
-   def from_assoc_tuples(*args):
+    def from_assoc_tuples(*args):
         tuples = []
         myargs = list(args)
         while myargs:
@@ -324,3 +326,23 @@ class BinRelation:
             if len(verts_in_row) == len(self.vertices):
                 optimal_elements.append(v)
         return max_elements, optimal_elements
+
+    def __xor__(self, other):
+        matrix = [[1 if a and b else 0 for a, b in zip(row1, row2)]
+                  for row1, row2 in zip(self.matrix, other.matrix)]
+        return BinRelation(matrix=matrix, vertices=self.vertices)
+
+    def __add__(self, other):
+        matrix = [[1 if (a or b) else 0
+                   for a, b in zip(row1, row2)]
+                  for row1, row2 in zip(self.matrix, other.matrix)]
+        return BinRelation(matrix=matrix, vertices=self.vertices)
+
+    def transpose(self):
+        new_matrix = [[self[j, i] for j, _ in enumerate(row)]
+                      for i, row in enumerate(self.matrix)]
+        return BinRelation(matrix=new_matrix, vertices=self.vertices)
+
+# Pareto: all components of σ ≥ 0
+# Majority: Σ of components of σ ≥ 0, e.g. (-1, 1, 0, 1), or (0, 0, -1, 1)
+# Lexicographic: TBD...

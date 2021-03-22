@@ -1,4 +1,4 @@
-from relation import BinRelation
+from common.relation import BinRelation
 
 
 if __name__ == "__main__":
@@ -69,9 +69,16 @@ if __name__ == "__main__":
           [1, 0, 0, 0, 0, 0, 1, 0, 0, 1],
           [0, 1, 0, 0, 1, 0, 0, 0, 1, 0],
           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+    m8 = [[0, 0, 1, 0, 0],
+          [1, 0, 1, 1, 0],
+          [0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0],
+          [1, 0, 1, 0, 0]]
 
-    rel = BinRelation(matrix=m7, vertices=list(range(1, 11)))
-    print(rel.build_K(1))
-    print(rel.build_K(2))
-    print(rel.build_K(3))
-    print(rel.build_K(4))
+    rel = BinRelation(matrix=m8, vertices=list(range(1, 11)))
+    print(rel.optim_domination())
+    print(rel.optim_blocking())
+    # print(rel.build_K(1))
+    # print(rel.build_K(2))
+    # print(rel.build_K(3))
+    # print(rel.build_K(4))
