@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import Any, List, Union
 import string
 import itertools
 from graphviz import Digraph
@@ -14,9 +14,9 @@ RELATION_CLASSES = {
 }
 
 
-def zipEnum(*args):
+def zipEnum(*args) -> Any:
     for i, t in enumerate(zip(*args)):
-        yield tuple([i, *t])
+        yield (i, *t)
 
 
 def from_pairs(pairs):
@@ -46,11 +46,14 @@ class BinRelation:
                      for name_tup in RELATION_CLASSES.values()
                      for name in name_tup)
 
-    def __init__(self, matrix=None, pairs=None, name="graph", vertices=None):
+    def __init__(self,
+                 matrix: List[List[int]]=None,
+                 pairs=None, name="graph",
+                 vertices=None):
         self.name = name
         if matrix is not None:
             assert all(len(row) == len(matrix) for row in matrix)
-            self.vertices = (vertices[:len(matrix)]
+            self.vertices: List[Union[int, str]] = (vertices[:len(matrix)]
                              if vertices is not None
                              else list(string.ascii_uppercase[:len(matrix)]))
             self.matrix = matrix
@@ -314,6 +317,8 @@ class BinRelation:
             pin_matrix = self.PIN_matrix(True, True, False)
         elif k == 4:
             pin_matrix = self.PIN_matrix(True, False, False)
+        else:
+            raise Exception('k is not in [1..4]')
         min_set = set()
         for row in pin_matrix:
             for v, c in zip(self.vertices, row):
