@@ -32,6 +32,7 @@ def main(args):
 
     print("Завдання 2:")
     size = 15
+    vertices = list(range(1, size+1))
     for n, matrix in enumerate(parse(args[1], size)):
         relation = BinRelation(matrix=matrix, vertices=vertices)
         print(f"Матриця №{n+1}:")

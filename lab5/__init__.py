@@ -1,6 +1,46 @@
 import sys
 from common.utils import parse456, transpose, to_fixed_str, str_row
 
+def run_vikor(matrix, weights, v, outfile):
+    out = lambda *args: print(*args, file=outfile)
+    out("Метод VIKOR:")
+    maximums = [max(row) for row in transpose(matrix)]
+    deltas = [max(row) - min(row) for row in transpose(matrix)]
+
+    normalized = [
+        [(maximums[i] - n) / (deltas[i]) for n in row]
+        for i, row in enumerate(transpose(matrix))
+    ]
+    out("Нормалізовані інтервали:")
+    for row in transpose(normalized):
+        out(str_row(row))
+    normalized_weights = [
+        [n*weights[i] for n in row]
+        for i, row in enumerate(normalized)
+    ]
+
+    out("Нормалізовані зважені інтервали:")
+    for row in transpose(normalized_weights):
+        out(str_row(row))
+
+    sj, rj, qj = [], [], []
+    for row in transpose(normalized_weights):
+        sj.append(sum(row))
+        rj.append(max(row))
+    for s, j in zip(sj, rj):
+        s_delta = max(sj)-min(sj)
+        j_delta = max(rj)-min(rj)
+        sx = (s-min(sj)) / s_delta
+        jx = (j-min(rj)) / j_delta
+        qj.append(v*sx + (1-v)*jx)
+
+    out(' '.join(s.ljust(7) for s in ("Sj:", "Rj:", "Qj:")))
+    for sjq in zip(sj, rj, qj):
+        out(str_row(sjq, spaces=3))
+
+    ranging = sorted(zip(range(1, len(matrix)+1), qj), key=lambda x: x[1])
+    out(' < '.join('A'+str(v) for v, _ in ranging))
+
 def main(args):
     matrix, k, _, _ = parse456(args[0])
     weights = [x/sum(k) for x in k]
@@ -56,6 +96,12 @@ def main(args):
     out("C*:")
     c_star = [nis / (pis + nis) for pis, nis in zip(pis_distance, nis_distance)]
     out(str_row(c_star))
+    ranging = sorted(
+        zip(range(1, len(matrix)+1), c_star),
+        key=lambda x: x[1],
+        reverse=True,
+    )
+    out(' > '.join(str(x[0]) for x in ranging))
     best = max(zip(range(1, len(matrix)+1), c_star), key=lambda x: x[1])[0]
     out(f"Найкраща альтернатива: {best}")
 
@@ -84,41 +130,16 @@ def main(args):
     out("C*:")
     c_star = [nis / (pis + nis) for pis, nis in zip(pis_distance, nis_distance)]
     out(str_row(c_star))
+    ranging = sorted(
+        zip(range(1, len(matrix)+1), c_star),
+        key=lambda x: x[1],
+        reverse=True,
+    )
+    out(' > '.join(str(x[0]) for x in ranging))
     best = max(zip(range(1, len(matrix)+1), c_star), key=lambda x: x[1])[0]
     out(f"Найкраща альтернатива: {best}\n")
 
-    out("Метод VIKOR:")
-    maximums = [max(row) for row in transpose(matrix)]
-    deltas = [max(row) - min(row) for row in transpose(matrix)]
-
-    normalized = [
-        [(maximums[i] - n) / (deltas[i]) for n in row]
-        for i, row in enumerate(transpose(matrix))
-    ]
-    out("Нормалізовані інтервали:")
-    for row in transpose(normalized):
-        out(str_row(row))
-    normalized_weights = [
-        [n*weights[i] for n in row]
-        for i, row in enumerate(normalized)
-    ]
-
-    out("Нормалізовані зважені інтервали:")
-    for row in transpose(normalized_weights):
-        out(str_row(row))
-
-    sj, rj, qj = [], [], []
-    for row in transpose(normalized_weights):
-        sj.append(sum(row))
-        rj.append(max(row))
-    for s, j in zip(sj, rj):
-        s_delta = max(sj)-min(sj)
-        j_delta = max(rj)-min(rj)
-        qj.append(.5 * ((s-min(sj)) / s_delta) + .5 * ((j-min(rj)) / j_delta))
-
-    out(' '.join(s.ljust(5) for s in ("Sj:", "Rj:", "Qj:")))
-    for sjq in zip(sj, rj, qj):
-        out(str_row(sjq))
-
-    ranging = sorted(zip(range(1, len(matrix)+1), qj), key=lambda x: x[1])
-    out(' < '.join('A'+str(v) for v, _ in ranging))
+    run_vikor(matrix, weights, 0.5, outfile)
+    for v in range(11):
+        out("v =", v*.1)
+        run_vikor(matrix, weights, v*.1, outfile)

@@ -20,5 +20,5 @@ def transpose(matrix):
         for j in range(len(matrix[0]))
     ]
 
-def str_row(row):
-    return ' '.join(to_fixed_str(n) for n in row)
+def str_row(row, spaces=1):
+    return (spaces*' ').join(to_fixed_str(n) for n in row)
