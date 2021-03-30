@@ -179,6 +179,7 @@ class BinRelation:
                 if set(props).issubset(properties)]
 
     def has_cycle(self) -> bool:
+        """Перевірка відношення нанаявність циклів"""
         for start_vertex in self.vertices:
             visited, on_stack = set(), set()
             stack = [start_vertex]
@@ -234,6 +235,7 @@ class BinRelation:
                        for j, row in enumerate(self.matrix))]
 
     def optim_domination(self):
+        """Оптимізація за домінуванням"""
         if self.asymmetric():
             return self.x_star_p()
         else:
@@ -241,6 +243,7 @@ class BinRelation:
             return list(set(best))
 
     def optim_blocking(self):
+        """Оптимізація за блокуванням"""
         if self.asymmetric():
             return self.x_zero_p()
         else:
@@ -273,6 +276,7 @@ class BinRelation:
         return result
 
     def prove_inter_stability(self, vertices):
+        """Перевірка відношення на внутрішню стійкість"""
         for v in vertices:
             parents = [a for a, b in self.pairs if b == v]
             if any(p in vertices for p in parents):
@@ -280,6 +284,7 @@ class BinRelation:
         return True
 
     def prove_outer_stability(self, vertices):
+        """Перевірка відношення на зовнішню стійкість"""
         for v in (v for v in self.vertices if v not in vertices):
             pairs = [(a, v) for a in vertices]
             if not any(pair in self.pairs for pair in pairs):
@@ -287,11 +292,12 @@ class BinRelation:
         return True
 
     def optimal_by_NM(self, vertices):
-        """Prove Neumann–Morgenstern correctness"""
+        """Перевірка правльності алгоритму Неймана-Моргенштерна"""
         return (self.prove_inter_stability(vertices)
                 and self.prove_outer_stability(vertices))
 
     def PIN_matrix(self, P, I, N):
+        """Матриці P, I, N"""
         result = []
         for i, row in enumerate(self.matrix):
             r = []
@@ -308,6 +314,7 @@ class BinRelation:
         return result
 
     def build_K(self, k):
+        """К-оптимізація"""
         max_elements, optimal_elements = [], []
         if k == 1:
             pin_matrix = self.PIN_matrix(True, True, True)
@@ -333,23 +340,27 @@ class BinRelation:
         return max_elements, optimal_elements
 
     def __xor__(self, other):
+        """Операція A ∩ B"""
         matrix = [[1 if a and b else 0 for a, b in zip(row1, row2)]
                   for row1, row2 in zip(self.matrix, other.matrix)]
         return BinRelation(matrix=matrix, vertices=self.vertices)
 
     def __add__(self, other):
+        """Операція A ∪ B"""
         matrix = [[1 if (a or b) else 0
                    for a, b in zip(row1, row2)]
                   for row1, row2 in zip(self.matrix, other.matrix)]
         return BinRelation(matrix=matrix, vertices=self.vertices)
 
     def __invert__(self):
+        """Операція ¬A"""
         new_matrix = [[1 if not c else 0
                        for c in row]
                       for row in self.matrix]
         return BinRelation(matrix=new_matrix, vertices=self.vertices)
 
     def transpose(self):
+        """Операція транспонування"""
         new_matrix = [[self[j, i] for j, _ in enumerate(row)]
                       for i, row in enumerate(self.matrix)]
         return BinRelation(matrix=new_matrix, vertices=self.vertices)

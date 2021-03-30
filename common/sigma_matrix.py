@@ -18,12 +18,14 @@ class SigmaMatrix:
                  for vec in row] for row in self.matrix]
 
     def pareto(self):
+        """Побудова відношення Парето"""
         matrix = [[1 if all(n >= 0 for n in sigma) else 0
                    for sigma in row]
                   for row in self.matrix]
         return BinRelation(matrix=matrix)
 
     def majoritaric(self):
+        """Побудова Мажоритарного відношення"""
         normalized = self.normalize()
         matrix = [[1 if sum(sigma) > 0 else 0
                    for sigma in row]
@@ -31,6 +33,7 @@ class SigmaMatrix:
         return BinRelation(matrix=matrix)
 
     def lexicographic(self, ranging):
+        """Побудова лексикографічного відношення"""
         new_ratings = [[rating[i-1] for i in ranging]
                        for rating in self.ratings]
 
@@ -50,5 +53,6 @@ class SigmaMatrix:
         return BinRelation(matrix=matrix)
 
     def podinovsky(self):
+        """Побудова відношення Подиносвького"""
         new_matrix = [sorted(row, reverse=True) for row in self.ratings]
         return SigmaMatrix(new_matrix).pareto()

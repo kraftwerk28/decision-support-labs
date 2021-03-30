@@ -15,6 +15,7 @@ def parse(filename, size):
 
 def main(args):
     print("Варіант №1")
+
     print("Завдання 1:")
     size = 6
     vertices = list(range(1, size+1))
@@ -28,6 +29,7 @@ def main(args):
         print("Найкращі альтернативи за блокуванням:"
               f" {relation.optim_blocking()}")
         print()
+
     print('-'*80)
 
     print("Завдання 2:")
@@ -49,4 +51,3 @@ def main(args):
                 max, opt = relation.build_K(k)
                 print(f"\tМаксимальні альтернативи: {max}")
                 print(f"\tОптимальні альтернативи: {opt}")
-        print()
